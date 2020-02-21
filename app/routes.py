@@ -7,7 +7,7 @@ from app import app
 def login():
     sign_in_url = '#'  # stay on the same page
     context = {'signin_url': sign_in_url}
-    log('Rendering template')
+    log("DEBUG", 'Rendering template')
     return render_template('login.html', context=context)
 
 if __name__ == '__main__':
