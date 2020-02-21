@@ -1,5 +1,4 @@
-# from mylogger import log
-import logging
+from mylogger import log
 from flask import render_template
 
 from app import app
@@ -8,8 +7,8 @@ from app import app
 def login():
     sign_in_url = '#'  # stay on the same page
     context = {'signin_url': sign_in_url}
-    logging.info('Rendering template')
-    return render_template('login.html', context)
+    log('Rendering template')
+    return render_template('login.html', context=context)
 
 if __name__ == '__main__':
     app.run()
