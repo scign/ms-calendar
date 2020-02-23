@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+{% block content %}
+<h1>Meetings</h1>
+<table class="table">
+  <tr>
+    <th>Start</th>
+    <th>Duration</th>
+    <th>Room</th>
+    <th>Subject</th>
+  </tr>
+
+  {% for event in events %}
+    <tr>
+      <td>{{ event.start_time }}</td>
+      <td>{{ event.duration }}</td>
+      <td>{{ event.location }}</td>
+      <td>{{ event.subject }}</td>
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}
