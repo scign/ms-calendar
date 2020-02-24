@@ -3,16 +3,12 @@ from flask import render_template, url_for, request, session, redirect
 from app import app
 from app.mylogger import log
 from app.authhelper import get_signin_url, get_token_from_code, get_access_token
-from app.graphapi import get_me, get_all_meetings
+from app.graphapi import get_me, get_all_meetings, get_my_meetings
 
 from dateutil.parser import parse
 from dateutil.tz import gettz
 import requests
-
-# should be pulled from the config
-assert(app.config['AZURE_TENANT_ID'] is not None)
-assert(app.config['AZURE_APP_ID'] is not None)
-assert(app.config['AZURE_APP_SECRET'] is not None)
+import pandas as pd
 
 def get_redirect_uri():
     '''
@@ -45,11 +41,10 @@ def logged_in():
 def login():
     if logged_in():
         return redirect(url_for('upcoming_meetings'))
-    else:
-        redirect_uri = get_redirect_uri()
-        sign_in_url = get_signin_url(redirect_uri)
-        context = {'signin_url': sign_in_url}
-        return render_template('login.html', **context)
+    redirect_uri = get_redirect_uri()
+    sign_in_url = get_signin_url(redirect_uri)
+    context = {'signin_url': sign_in_url}
+    return render_template('login.html', **context)
 
 @app.route('/get_token')
 def token():
@@ -64,32 +59,58 @@ def me():
     user = get_me()
     if 'status_code' in user.keys():
         return handle_error(user)
-    return 'Hi {} {}, I see that your email address is {}'.format(user['givenName'], user['surname'], user['mail'])
+    context = {'user': user}
+    return render_template('profile.html', **context)
 
-@app.route('/events')
+@app.route('/events', methods=['GET','POST'])
 def upcoming_meetings():
+    '''
+    Get upcoming room bookings for all TCH meeting rooms
+    '''
+    # check we're signed in
     if not logged_in():
         return redirect(url_for('login'))
-    meetings = get_all_meetings(days=2)
+    num_days = 2  # default value
+    if request.method == 'POST':
+        num_days = request.form['num-days']
+    
+    meetings = get_all_meetings(days=num_days)
     if 'status_code' in meetings.keys():
         return handle_error(meetings)
+    
     meetings = meetings['value']
     events = []
+    # get details for each room booking
     for schedule in meetings:
         for item in schedule['scheduleItems']:
             start_time = parse(item['start']['dateTime'] + item['start']['timeZone'])
             end_time = parse(item['end']['dateTime'] + item['end']['timeZone'])
             duration = end_time - start_time
             events.append({
-                'room': item['location'],
+                'room': schedule['scheduleId'][:13].upper(),
                 'subject': item['subject'],
                 'start_time': start_time.astimezone(gettz('EST')).strftime('%d %b, %H:%M'),
                 'end_time': end_time.astimezone(gettz('EST')).strftime('%d %b, %H:%M'),
                 'room_email': schedule['scheduleId'],
                 'duration': duration
             })
+    events.sort(key=lambda x: x['start_time'] + x['room'])
     context = {'events': events}
     return render_template('meetings.html', **context)
+
+@app.route('/declines')
+def declines():
+    # not fully yet implemented. for now redirect
+    return redirect(url_for('login'))
+    
+    if not logged_in():
+        return redirect(url_for('login'))
+    meetings = get_my_meetings(days=3)
+    if 'status_code' in meetings.keys():
+        return handle_error(meetings)
+    
+    context = {'meetings': meetings}
+    return render_template('profile.html', **context)
 
 if __name__ == '__main__':
     app.run()

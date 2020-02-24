@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+{% block content %}
+<h1>Profile</h1>
+<table class="table">
+  <tr><th>Display name</td><td>{{ user.displayName }}</th></tr>
+  <tr><th>Role title</td><td>{{ user.jobTitle }}</th></tr>
+  <tr><th>Email address</td><td>{{ user.mail }}</th></tr>
+  <tr><th>Phone Number(s)</th><td>
+{% for phoneNumber in user.businessPhones %}
+    {{ phoneNumber }}<br>
+{% endfor %}
+  </td></tr>
+</table>
+{% endblock %}

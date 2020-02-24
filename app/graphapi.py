@@ -48,11 +48,10 @@ def make_api_call(method, url, payload = None, parameters = None):
         'client-request-id': request_id,
         'return-client-request-id': 'true'
     }
-
     headers.update(instrumentation)
-
+    
     response = None
-
+    # to do: handle ConnectionError (if not connected)
     if (method.upper() == 'GET'):
         response = requests.get(url, headers = headers, params = parameters)
     elif (method.upper() == 'DELETE'):
@@ -80,7 +79,8 @@ def error_wrap(resp):
 def get_me():
     # Use OData query parameters to control the results
     #  - Only return the displayName and mail fields
-    query_parameters = {'$select': 'mail,givenName,surname'}
+    query_parameters = {'$select': 'mail,displayName,jobTitle,businessPhones'}
+    # to do: handle ConnectionError (if not connected)
     r = error_wrap(make_api_call(
         'GET', graph_endpoint.format('/me'),
         "", parameters = query_parameters
@@ -94,7 +94,7 @@ def load_rooms():
         rooms = [line for line in freader]
     return rooms
 
-def get_all_meetings(days=3):
+def get_all_meetings(days=2):
     get_meetings_url = graph_endpoint.format('/me/calendar/getSchedule')
     rooms = load_rooms()
     body = {
@@ -109,8 +109,25 @@ def get_all_meetings(days=3):
         },
         'availabilityViewInterval': 30
     }
+    # to do: handle ConnectionError (if not connected)
     r = error_wrap(make_api_call(
         'POST', get_meetings_url,
         body
     ))
     return r
+
+def get_my_meetings(days=2):
+    get_meetings_url = graph_endpoint.format('/me/calendarview')
+    body = {
+        'startdatetime': date.today.strftime('%Y-%m-%d'),
+        'enddatetime': date.today.strftime('%Y-%m-%d') + timedelta(days=days)
+    }
+    r = error_wrap(make_api_call(
+        'POST', get_meetings_url,
+        body
+    ))
+    return r
+
+def get_convenient_slot(attendees, days):
+    get_convenient_url = graph_endpoint.format('/me/calendar/getschedule')
+    return None

@@ -1,3 +1,4 @@
-flask
-requests
-azure-storage-logging
+flask==1.1.1
+requests==2.22.0
+azure-storage-logging==0.5.1
+pandas==1.0.0
