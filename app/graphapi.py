@@ -3,6 +3,7 @@ import uuid
 import json
 from datetime import date, timedelta
 from dateutil.parser import parse
+import os
 import csv
 from flask import session, render_template
 
@@ -88,7 +89,7 @@ def get_me():
 
 def load_rooms():
     rooms = []
-    with open('app\\data\\rooms.csv','r') as f:
+    with open(os.path.join('app','data','rooms.csv'),'r') as f:
         freader = csv.DictReader(f, delimiter=',', quotechar='"')
         rooms = [line for line in freader]
     return rooms
