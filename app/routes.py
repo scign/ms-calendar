@@ -36,16 +36,20 @@ def handle_error(resp):
         resp['suggestion'] = 'I\'ll leave it to you to figure out what to do here.'
     return render_template('error.html', **resp)
 
-@app.route('/')
-def login():
+def logged_in():
     redirect_uri = get_redirect_uri()
     access_token = get_access_token(redirect_uri)
-    if access_token is None:
+    return access_token is not None
+
+@app.route('/')
+def login():
+    if logged_in():
+        return redirect(url_for('upcoming_meetings'))
+    else:
+        redirect_uri = get_redirect_uri()
         sign_in_url = get_signin_url(redirect_uri)
         context = {'signin_url': sign_in_url}
         return render_template('login.html', **context)
-    else:
-        return redirect(url_for('upcoming_meetings'))
 
 @app.route('/get_token')
 def token():
@@ -55,6 +59,8 @@ def token():
 
 @app.route('/me')
 def me():
+    if not logged_in():
+        return redirect(url_for('login'))
     user = get_me()
     if 'status_code' in user.keys():
         return handle_error(user)
@@ -62,6 +68,8 @@ def me():
 
 @app.route('/events')
 def upcoming_meetings():
+    if not logged_in():
+        return redirect(url_for('login'))
     meetings = get_all_meetings(days=2)
     if 'status_code' in meetings.keys():
         return handle_error(meetings)
