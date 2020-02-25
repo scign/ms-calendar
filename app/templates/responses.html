@@ -1,0 +1,25 @@
+{% extends "main.html" %}
+{% block content %}
+<h1>Responses</h1>
+<table class="table">
+  <tr>
+    <th>Start</th>
+    <th>Room</th>
+    <th>Subject</th>
+    <th>Attendees</th>
+  </tr>
+
+  {% for event in events %}
+    <tr>
+      <td>{{ event.start_time }}</td>
+      <td>{{ event.room }}</td>
+      <td>{{ event.subject }}</td>
+      <td>
+{% for attendee in event.responses %}
+          <div class={% if attendee.has_accepted %}"bg-success text-white"{% elif attendee.has_declined %}"bg-danger text-white"{% elif attendee.has_tentative %}"bg-secondary text-white"{% elif attendee.no_response %}"bg-warning text-white"{% endif %}>{{ attendee.email }} ({{ attendee.response }})</div><br>
+{% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

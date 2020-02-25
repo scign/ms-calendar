@@ -94,7 +94,7 @@ def load_rooms():
         rooms = [line for line in freader]
     return rooms
 
-def get_all_meetings(days=2):
+def get_all_meetings(days=1):
     get_meetings_url = graph_endpoint.format('/me/calendar/getSchedule')
     rooms = load_rooms()
     body = {
@@ -116,15 +116,14 @@ def get_all_meetings(days=2):
     ))
     return r
 
-def get_my_meetings(days=2):
+def get_my_meetings(days=1):
     get_meetings_url = graph_endpoint.format('/me/calendarview')
-    body = {
-        'startdatetime': date.today.strftime('%Y-%m-%d'),
-        'enddatetime': date.today.strftime('%Y-%m-%d') + timedelta(days=days)
-    }
+    get_meetings_url += '?StartDateTime=' + date.today().strftime('%Y-%m-%d') + 'T01:00:00'
+    get_meetings_url += '&EndDateTime=' + (date.today() + timedelta(days=days+1)).strftime('%Y-%m-%d') + 'T01:00:00'
+    # startdatetime=2020-02-24T22:29:28.248Z
+    # & enddatetime=2020-03-02T22:29:28.248Z
     r = error_wrap(make_api_call(
-        'POST', get_meetings_url,
-        body
+        'GET', get_meetings_url
     ))
     return r
 

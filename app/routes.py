@@ -98,19 +98,52 @@ def upcoming_meetings():
     context = {'events': events}
     return render_template('meetings.html', **context)
 
-@app.route('/declines')
-def declines():
-    # not fully yet implemented. for now redirect
-    return redirect(url_for('login'))
-    
+'''
+'@odata.etag', 'id', 'createdDateTime', 'lastModifiedDateTime',
+'changeKey', 'categories', 'originalStartTimeZone',
+'originalEndTimeZone', 'iCalUId', 'reminderMinutesBeforeStart',
+'isReminderOn', 'hasAttachments', 'subject', 'bodyPreview',
+'importance', 'sensitivity', 'isAllDay', 'isCancelled', 'isOrganizer',
+'responseRequested', 'seriesMasterId', 'showAs', 'type', 'webLink',
+'onlineMeetingUrl', 'recurrence', 'responseStatus', 'body', 'start',
+'end', 'location', 'locations', 'attendees', 'organizer', 'start_time',
+'end_time', 'duration', 'room'
+'''
+
+@app.route('/responses', methods=['GET','POST'])
+def responses():
     if not logged_in():
         return redirect(url_for('login'))
-    meetings = get_my_meetings(days=3)
+    num_days = 1  # default value
+    if request.method == 'POST':
+        num_days = request.form['num-days']
+    
+    meetings = get_my_meetings(days=num_days)
     if 'status_code' in meetings.keys():
         return handle_error(meetings)
     
-    context = {'meetings': meetings}
-    return render_template('profile.html', **context)
+    df = pd.DataFrame(meetings['value'])
+    df = df[(df.showAs.isin(['busy','tentative'])) & ~df.isCancelled]
+    df['start_time'] = df['start'].apply(lambda dt: parse(dt['dateTime'] + dt['timeZone']).astimezone(gettz('EST')))
+    df['end_time'] = df['end'].apply(lambda dt: parse(dt['dateTime'] + dt['timeZone']).astimezone(gettz('EST')))
+    df['duration'] = df.end_time - df.start_time
+    df['start_time_text'] = df.start_time.apply(lambda t: t.strftime('%Y-%m-%d %H:%M'))
+    df['end_time_text'] = df.end_time.apply(lambda t: t.strftime('%Y-%m-%d %H:%M'))
+    df['room'] = df['location'].apply(lambda location: location['displayName'])
+    df['responses'] = df.attendees.apply(lambda attendees: [{
+        'email': attendee['emailAddress']['address'],
+        'response': attendee['status']['response'],
+        'has_accepted': attendee['status']['response']=='accepted',
+        'has_declined': attendee['status']['response']=='declined',
+        'has_tentative': attendee['status']['response']=='tentativelyAccepted',
+        'no_response': attendee['status']['response']=='none'
+    } for attendee in attendees])
+    cols = [
+        'subject','isOrganizer','showAs','start_time','duration','room','responses'
+    ]
+    events = df[cols].to_dict(orient='records')
+    context = {'events': events}
+    return render_template('responses.html', **context)
 
 if __name__ == '__main__':
     app.run()
