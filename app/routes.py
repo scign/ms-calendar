@@ -98,18 +98,6 @@ def upcoming_meetings():
     context = {'events': events}
     return render_template('meetings.html', **context)
 
-'''
-'@odata.etag', 'id', 'createdDateTime', 'lastModifiedDateTime',
-'changeKey', 'categories', 'originalStartTimeZone',
-'originalEndTimeZone', 'iCalUId', 'reminderMinutesBeforeStart',
-'isReminderOn', 'hasAttachments', 'subject', 'bodyPreview',
-'importance', 'sensitivity', 'isAllDay', 'isCancelled', 'isOrganizer',
-'responseRequested', 'seriesMasterId', 'showAs', 'type', 'webLink',
-'onlineMeetingUrl', 'recurrence', 'responseStatus', 'body', 'start',
-'end', 'location', 'locations', 'attendees', 'organizer', 'start_time',
-'end_time', 'duration', 'room'
-'''
-
 @app.route('/responses', methods=['GET','POST'])
 def responses():
     if not logged_in():
@@ -147,3 +135,15 @@ def responses():
 
 if __name__ == '__main__':
     app.run()
+
+'''
+'@odata.etag', 'id', 'createdDateTime', 'lastModifiedDateTime',
+'changeKey', 'categories', 'originalStartTimeZone',
+'originalEndTimeZone', 'iCalUId', 'reminderMinutesBeforeStart',
+'isReminderOn', 'hasAttachments', 'subject', 'bodyPreview',
+'importance', 'sensitivity', 'isAllDay', 'isCancelled', 'isOrganizer',
+'responseRequested', 'seriesMasterId', 'showAs', 'type', 'webLink',
+'onlineMeetingUrl', 'recurrence', 'responseStatus', 'body', 'start',
+'end', 'location', 'locations', 'attendees', 'organizer', 'start_time',
+'end_time', 'duration', 'room'
+'''
