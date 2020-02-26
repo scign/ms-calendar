@@ -11,12 +11,22 @@
 
   {% for event in events %}
     <tr>
-      <td>{{ event.start_time }}</td>
+      <td>{{ event.start_time_text }}</td>
       <td>{{ event.room }}</td>
       <td>{{ event.subject }}</td>
       <td>
 {% for attendee in event.responses %}
-          <div class={% if attendee.has_accepted %}"bg-success text-white"{% elif attendee.has_declined %}"bg-danger text-white"{% elif attendee.has_tentative %}"bg-secondary text-white"{% elif attendee.no_response %}"bg-warning text-white"{% endif %}>{{ attendee.email }} ({{ attendee.response }})</div><br>
+{% if attendee.is_organizer %}
+        <div class="text-white bg-info">{{ attendee.email }} (organizer)</div>
+{% elif attendee.has_accepted %}
+        <div class="text-white bg-success">{{ attendee.email }} (accepted)</div>
+{% elif attendee.has_declined %}
+        <div class="text-white bg-danger">{{ attendee.email }} (declined)</div>
+{% elif attendee.has_tentative %}
+        <div class="text-white bg-secondary">{{ attendee.email }} (tentative)</div>
+{% elif attendee.no_response %}
+        <div class="text-white bg-warning">{{ attendee.email }}</div>
+{% endif %}
 {% endfor %}
       </td>
     </tr>

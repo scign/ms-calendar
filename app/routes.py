@@ -105,6 +105,8 @@ def responses():
     num_days = 1  # default value
     if request.method == 'POST':
         num_days = request.form['num-days']
+    if request.method == 'GET' and 'days' in request.args.keys():
+        num_days = request.args['days']
     
     meetings = get_my_meetings(days=num_days)
     if 'status_code' in meetings.keys():
@@ -118,14 +120,21 @@ def responses():
     df['start_time_text'] = df.start_time.apply(lambda t: t.strftime('%Y-%m-%d %H:%M'))
     df['end_time_text'] = df.end_time.apply(lambda t: t.strftime('%Y-%m-%d %H:%M'))
     df['room'] = df['location'].apply(lambda location: location['displayName'])
-    df['responses'] = df.attendees.apply(lambda attendees: [{
-        'email': attendee['emailAddress']['address'],
-        'response': attendee['status']['response'],
-        'has_accepted': attendee['status']['response']=='accepted',
-        'has_declined': attendee['status']['response']=='declined',
-        'has_tentative': attendee['status']['response']=='tentativelyAccepted',
-        'no_response': attendee['status']['response']=='none'
-    } for attendee in attendees])
+    attendee_responses = []
+    for i,event in df.iterrows():
+        response_group = []
+        for attendee in event['attendees']:
+            response_group.append({
+                'email': attendee['emailAddress']['address'],
+                'response': attendee['status']['response'],
+                'has_accepted': attendee['status']['response']=='accepted',
+                'has_declined': attendee['status']['response']=='declined',
+                'has_tentative': attendee['status']['response']=='tentativelyAccepted',
+                'no_response': attendee['status']['response']=='none',
+                'is_organizer': attendee['emailAddress']['address']==event['organizer']['emailAddress']['address']
+            })
+        attendee_responses.append(response_group)
+    df['responses'] = attendee_responses
     cols = [
         'subject','isOrganizer','showAs','start_time','duration','room','responses'
     ]
