@@ -107,6 +107,11 @@ def responses():
         num_days = request.form['num-days']
     if request.method == 'GET' and 'days' in request.args.keys():
         num_days = request.args['days']
+    if type(num_days) is str:
+        try:
+            num_days = int(num_days)
+        except:
+            num_days = 1
     
     meetings = get_my_meetings(days=num_days)
     if 'status_code' in meetings.keys():
