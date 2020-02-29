@@ -9,6 +9,10 @@
     <th>Attendees</th>
   </tr>
 
+  {% if not events %}
+  <tr><td>No meetings</td><td></td><td></td><td></td></tr>
+  {% endif %}
+  
   {% for event in events %}
     <tr>
       <td>{{ event.start_time_text }}</td>

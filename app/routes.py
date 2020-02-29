@@ -112,7 +112,8 @@ def responses():
     if 'status_code' in meetings.keys():
         return handle_error(meetings)
     
-    df = pd.DataFrame(meetings['value'])
+    cols = ['showAs','start','end','isCancelled','subject','isOrganizer','location','attendees']
+    df = pd.DataFrame(meetings['value'], columns=cols)
     df = df[(df.showAs.isin(['busy','tentative'])) & ~df.isCancelled]
     df['start_time'] = df['start'].apply(lambda dt: parse(dt['dateTime'] + dt['timeZone']).astimezone(gettz('EST')))
     df['end_time'] = df['end'].apply(lambda dt: parse(dt['dateTime'] + dt['timeZone']).astimezone(gettz('EST')))
