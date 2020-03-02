@@ -117,9 +117,14 @@ def responses():
     if 'status_code' in meetings.keys():
         return handle_error(meetings)
     
-    cols = ['showAs','start','end','isCancelled','subject','isOrganizer','location','attendees']
+    cols = [
+        'id','showAs','start','end',
+        'isCancelled','subject','isOrganizer',
+        'location','organizer','attendees'
+    ]
     df = pd.DataFrame(meetings['value'], columns=cols)
     df = df[(df.showAs.isin(['busy','tentative'])) & ~df.isCancelled]
+    df['event_id'] = df.id.str[58:68] + df.id.str[-16:-2]
     df['start_time'] = df['start'].apply(lambda dt: parse(dt['dateTime'] + dt['timeZone']).astimezone(gettz('EST')))
     df['end_time'] = df['end'].apply(lambda dt: parse(dt['dateTime'] + dt['timeZone']).astimezone(gettz('EST')))
     df['duration'] = df.end_time - df.start_time
@@ -127,9 +132,12 @@ def responses():
     df['end_time_text'] = df.end_time.apply(lambda t: t.strftime('%Y-%m-%d %H:%M'))
     df['room'] = df['location'].apply(lambda location: location['displayName'])
     attendee_responses = []
+    response_summaries = []
     for i,event in df.iterrows():
         response_group = []
+        response_summary = {}
         for attendee in event['attendees']:
+            response_summary[attendee['status']['response']] = response_summary.get(attendee['status']['response'], 0) + 1
             response_group.append({
                 'email': attendee['emailAddress']['address'],
                 'response': attendee['status']['response'],
@@ -140,9 +148,18 @@ def responses():
                 'is_organizer': attendee['emailAddress']['address']==event['organizer']['emailAddress']['address']
             })
         attendee_responses.append(response_group)
+        response_summaries.append({
+            'accepted': "{}".format(response_summary.get('accepted', 0)),
+            'tentative': "{}".format(response_summary.get('tentativelyAccepted', 0)),
+            'declined': "{}".format(response_summary.get('declined', 0)),
+            'none': "{}".format(response_summary.get('none', 0) - 1)  # organizer has response 'none'
+        })
     df['responses'] = attendee_responses
+    df['summary'] = response_summaries
     cols = [
-        'subject','isOrganizer','showAs','start_time','duration','room','responses'
+        'id','subject','isOrganizer',
+        'showAs','start_time_text','event_id',
+        'duration','room','responses', 'summary'
     ]
     events = df[cols].to_dict(orient='records')
     context = {'events': events}

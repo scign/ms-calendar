@@ -1,39 +1,36 @@
 {% extends "main.html" %}
 {% block content %}
 <h1>Responses</h1>
-<table class="table">
-  <tr>
-    <th>Start</th>
-    <th>Room</th>
-    <th>Subject</th>
-    <th>Attendees</th>
-  </tr>
-
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
   {% if not events %}
-  <tr><td>No meetings</td><td></td><td></td><td></td></tr>
+  <div class="panel panel-default">
+        <div class="panel-heading">No meetings</div>
+  </div>
   {% endif %}
-  
   {% for event in events %}
-    <tr>
-      <td>{{ event.start_time_text }}</td>
-      <td>{{ event.room }}</td>
-      <td>{{ event.subject }}</td>
-      <td>
-{% for attendee in event.responses %}
-{% if attendee.is_organizer %}
-        <div class="text-white bg-info">{{ attendee.email }} (organizer)</div>
-{% elif attendee.has_accepted %}
-        <div class="text-white bg-success">{{ attendee.email }} (accepted)</div>
-{% elif attendee.has_declined %}
-        <div class="text-white bg-danger">{{ attendee.email }} (declined)</div>
-{% elif attendee.has_tentative %}
-        <div class="text-white bg-secondary">{{ attendee.email }} (tentative)</div>
-{% elif attendee.no_response %}
-        <div class="text-white bg-warning">{{ attendee.email }}</div>
-{% endif %}
-{% endfor %}
-      </td>
-    </tr>
+  <div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="heading_{{ event.event_id }}">
+      <h3 class="panel-title"><span><i class="glyphicon glyphicon-time"></i> {{ event.start_time_text }}</span> <i class="glyphicon glyphicon-user"></i> <strong>{{ event.subject }}</strong></h3>
+      <div>{{ event.room }}: </div>
+      <button class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse_{{ event.event_id }}" aria-expanded="false" aria-controls="collapse_{{ event.event_id }}">
+        <i class="glyphicon glyphicon-chevron-right"></i>
+      </button>
+      <span class="text-success">Accepted: <kbd class="label-success">{{ event.summary.accepted }}</kbd></span>
+      <span class="text-info">Tentative: <kbd class="label-info">{{ event.summary.tentative }}</kbd></span>
+      <span class="text-danger">Declined: <kbd class="label-danger">{{ event.summary.declined }}</kbd></span>
+      <span class="text-warning">No response: <kbd class="label-warning">{{ event.summary.none }}</kbd></span>
+    </div>
+    <div id="collapse_{{ event.event_id }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading_{{ event.event_id }}">
+      <div class="panel-body">{% for attendee in event.responses %}
+        {%
+          if attendee.is_organizer %}<div class="text-white bg-info">{{attendee.email}} (organizer)</div>{%
+          elif attendee.has_accepted %}<div class="text-white bg-success">{{ attendee.email }} (accepted)</div>{%
+          elif attendee.has_declined %}<div class="text-white bg-danger">{{ attendee.email }} (declined)</div>{%
+          elif attendee.has_tentative %}<div class="text-white bg-secondary">{{ attendee.email }} (tentative)</div>{%
+          elif attendee.no_response %}<div class="text-white bg-warning">{{ attendee.email }}</div>{%
+        endif %}{% endfor %}</div>
+    </div>
+  </div>
   {% endfor %}
-</table>
+</div>
 {% endblock %}
