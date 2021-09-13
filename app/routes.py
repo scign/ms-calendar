@@ -89,8 +89,8 @@ def upcoming_meetings():
             events.append({
                 'room': schedule['scheduleId'][:13].upper(),
                 'subject': item['subject'],
-                'start_time': start_time.astimezone(gettz('EST')).strftime('%d %b, %H:%M'),
-                'end_time': end_time.astimezone(gettz('EST')).strftime('%d %b, %H:%M'),
+                'start_time': start_time.astimezone(gettz('America/Toronto')).strftime('%d %b, %H:%M'),
+                'end_time': end_time.astimezone(gettz('America/Toronto')).strftime('%d %b, %H:%M'),
                 'room_email': schedule['scheduleId'],
                 'duration': duration
             })
