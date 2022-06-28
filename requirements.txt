@@ -1,7 +1,7 @@
-flask==1.1.1
-requests==2.22.0
+flask
+requests
 # removed due to issue with azure-storage dependency
 # https://github.com/michiya/azure-storage-logging/issues/6
 # azure-storage-logging==0.5.1
 # updated from 1.0.0 because azure pip couldn't find 1.0.0 (?)
-pandas<=1.4.3
+pandas
