@@ -7,6 +7,7 @@ from app.graphapi import get_me, get_all_meetings, get_my_meetings
 
 from dateutil.parser import parse
 from dateutil.tz import gettz
+import re
 import requests
 import pandas as pd
 
@@ -79,6 +80,7 @@ def upcoming_meetings():
         return handle_error(meetings)
     
     meetings = meetings['value']
+    room_pattern = re.compile(r'\d+[a-z]-[a-z]\d+-\d+')
     events = []
     # get details for each room booking
     for schedule in meetings:
@@ -87,7 +89,8 @@ def upcoming_meetings():
             end_time = parse(item['end']['dateTime'] + item['end']['timeZone'])
             duration = end_time - start_time
             events.append({
-                'room': schedule['scheduleId'][:13].upper(),
+                # room = schedule['scheduleId'][:13].upper()
+                'room': match.group(0).upper() if (match := room_pattern.search(schedule['scheduleId'])) else '-',
                 'subject': item['subject'],
                 'start_time': start_time.astimezone(gettz('America/Toronto')).strftime('%d %b, %H:%M'),
                 'end_time': end_time.astimezone(gettz('America/Toronto')).strftime('%d %b, %H:%M'),
